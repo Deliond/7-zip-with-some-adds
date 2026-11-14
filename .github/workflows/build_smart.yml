@@ -29,6 +29,16 @@ jobs:
         run: |
           build.cmd x64
 
+      - name: Verify smart entry is in 7-zip.dll
+        shell: pwsh
+        run: |
+          $b = [IO.File]::ReadAllBytes("CPP\7zip\UI\Explorer\x64\7-zip.dll")
+          $u = [Text.Encoding]::Unicode.GetString($b)
+          $a = [Text.Encoding]::ASCII.GetString($b)
+          if (-not $u.Contains("Extract Here (Smart)")) { throw "string resource missing" }
+          if (-not $a.Contains("ExtractHereSmart")) { throw "verb missing" }
+          "OK"
+
       - name: Archive installer
         uses: actions/upload-artifact@v7
         with:
