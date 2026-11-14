@@ -1,0 +1,36 @@
+name: Build with Extract Here (Smart)
+# Aplica smart-extract.patch sobre el codigo y compila el instalador x64 (modo oscuro + Extract Here (Smart)).
+# Se ejecuta en cada push a main (p. ej. al pulsar "Sync fork") o a mano desde la pestana Actions.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          submodules: 'recursive'
+
+      - name: Apply Smart Extract patch
+        shell: bash
+        # El runner convierte a CRLF al descargar; se normaliza el parche y se ignoran diferencias de espacios.
+        run: |
+          sed -i 's/\r$//' smart-extract.patch
+          git apply --ignore-whitespace --whitespace=nowarn smart-extract.patch
+          sed -i 's/\r*$/\r/' build.cmd   # las lineas nuevas llegan con LF; build.cmd debe quedar entero en CRLF
+
+      - name: Build x64
+        shell: cmd
+        run: |
+          build.cmd x64
+
+      - name: Archive installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: 7z-dark-smart-x64-fluent-installer
+          path: x64-fluent-installer-bin
