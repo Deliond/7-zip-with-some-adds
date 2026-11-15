@@ -183,7 +183,7 @@ index 130f55a..454d9b7 100644
        OverwriteMode_Force(false),
        PathMode(NExtract::NPathMode::kFullPaths),
 diff --git a/CPP/7zip/UI/Explorer/ContextMenu.cpp b/CPP/7zip/UI/Explorer/ContextMenu.cpp
-index 44d3480..c5f42f8 100644
+index 44d3480..7cd2f8b 100644
 --- a/CPP/7zip/UI/Explorer/ContextMenu.cpp
 +++ b/CPP/7zip/UI/Explorer/ContextMenu.cpp
 @@ -791,7 +791,7 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
@@ -200,9 +200,9 @@ index 44d3480..c5f42f8 100644
            MyInsertMenu(popupMenu, subIndex++, currentCommandID++, s, bitmap);
          }
 +
-+        if ((contextMenuFlags & (NContextMenuFlags::kExtract | NContextMenuFlags::kExtractHere | NContextMenuFlags::kExtractTo)) != 0)
++        if ((contextMenuFlags & NContextMenuFlags::kExtractHereSmart) != 0)
 +        {
-+          // Extract Here (Smart): shown if any extract item is enabled
++          // Extract Here (Smart): has its own flag (bit 3)
 +          CCommandMapItem cmiSmart;
 +          cmiSmart.CommandInternalID = kExtractHereSmart;
 +          cmiSmart.Verb = kMainVerb;
@@ -245,6 +245,18 @@ index 2759967..5b852bd 100644
      kTest,
      kCompress,
      kCompressEmail,
+diff --git a/CPP/7zip/UI/Explorer/ContextMenuFlags.h b/CPP/7zip/UI/Explorer/ContextMenuFlags.h
+index 50c177e..1ba0d57 100644
+--- a/CPP/7zip/UI/Explorer/ContextMenuFlags.h
++++ b/CPP/7zip/UI/Explorer/ContextMenuFlags.h
+@@ -8,6 +8,7 @@ namespace NContextMenuFlags
+   const UInt32 kExtract = 1 << 0;
+   const UInt32 kExtractHere = 1 << 1;
+   const UInt32 kExtractTo = 1 << 2;
++  const UInt32 kExtractHereSmart = 1 << 3;
+ 
+   const UInt32 kTest = 1 << 4;
+   const UInt32 kOpen = 1 << 5;
 diff --git a/CPP/7zip/UI/Explorer/resource.h b/CPP/7zip/UI/Explorer/resource.h
 index bbb28b1..e70ce97 100644
 --- a/CPP/7zip/UI/Explorer/resource.h
@@ -271,6 +283,18 @@ index de34824..9d22ea7 100644
    IDS_CONTEXT_EXTRACT_TO  "Extract to {0}"
    IDS_CONTEXT_COMPRESS_TO "Add to {0}"
    IDS_CONTEXT_COMPRESS_EMAIL "Compress and email..."
+diff --git a/CPP/7zip/UI/FileManager/MenuPage.cpp b/CPP/7zip/UI/FileManager/MenuPage.cpp
+index 9e5f9ba..46bf530 100644
+--- a/CPP/7zip/UI/FileManager/MenuPage.cpp
++++ b/CPP/7zip/UI/FileManager/MenuPage.cpp
+@@ -54,6 +54,7 @@ static const CContextMenuItem kMenuItems[] =
+   { IDS_CONTEXT_OPEN, kOpenAs },
+   { IDS_CONTEXT_EXTRACT, kExtract },
+   { IDS_CONTEXT_EXTRACT_HERE, kExtractHere },
++  { IDS_CONTEXT_EXTRACT_HERE_SMART, kExtractHereSmart },
+   { IDS_CONTEXT_EXTRACT_TO, kExtractTo },
+ 
+   { IDS_CONTEXT_TEST, kTest },
 diff --git a/build.cmd b/build.cmd
 index acd2d61..f66fbce 100644
 --- a/build.cmd
@@ -287,7 +311,7 @@ index acd2d61..f66fbce 100644
  
 diff --git a/add-smart-lang.ps1 b/add-smart-lang.ps1
 new file mode 100644
-index 0000000..d96b7ea
+index 0000000..fd460e8
 --- /dev/null
 +++ b/add-smart-lang.ps1
 @@ -0,0 +1,24 @@
@@ -302,7 +326,7 @@ index 0000000..d96b7ea
 +
 +$id = 20000
 +$texts = @{
-+    'es' = "Extraer aqu$([char]0xED) (inteligente)"
++    'es' = "Extraer aqu$([char]0xED) (Inteligente)"
 +}
 +
 +foreach ($lang in $texts.Keys) {
