@@ -183,10 +183,18 @@ index 130f55a..454d9b7 100644
        OverwriteMode_Force(false),
        PathMode(NExtract::NPathMode::kFullPaths),
 diff --git a/CPP/7zip/UI/Explorer/ContextMenu.cpp b/CPP/7zip/UI/Explorer/ContextMenu.cpp
-index 44d3480..7cd2f8b 100644
+index 44d3480..7dac734 100644
 --- a/CPP/7zip/UI/Explorer/ContextMenu.cpp
 +++ b/CPP/7zip/UI/Explorer/ContextMenu.cpp
-@@ -791,7 +791,7 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
+@@ -273,6 +273,7 @@ static const CContextMenuCommand g_Commands[] =
+   CMD_REC( kOpen,        "Open",        IDS_CONTEXT_OPEN),
+   CMD_REC( kExtract,     "Extract",     IDS_CONTEXT_EXTRACT),
+   CMD_REC( kExtractHere, "ExtractHere", IDS_CONTEXT_EXTRACT_HERE),
++  CMD_REC( kExtractHereSmart, "ExtractHereSmart", IDS_CONTEXT_EXTRACT_HERE_SMART),
+   CMD_REC( kExtractTo,   "ExtractTo",   IDS_CONTEXT_EXTRACT_TO),
+   CMD_REC( kTest,        "Test",        IDS_CONTEXT_TEST),
+   CMD_REC( kCompress,           "Compress",           IDS_CONTEXT_COMPRESS),
+@@ -791,7 +792,7 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
  
    ODS("### 150")
  
@@ -195,28 +203,23 @@ index 44d3480..7cd2f8b 100644
    {
      ODS("### needExtract list START")
      const bool needExtendedVerbs = ((flags & Z7_WIN_CMF_EXTENDEDVERBS) != 0);
-@@ -865,6 +865,20 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
-           Set_UserString_in_LastCommand(s);
-           MyInsertMenu(popupMenu, subIndex++, currentCommandID++, s, bitmap);
+@@ -854,6 +855,15 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
+           MyInsertMenu(popupMenu, subIndex++, currentCommandID++, mainString, bitmap);
          }
-+
+ 
 +        if ((contextMenuFlags & NContextMenuFlags::kExtractHereSmart) != 0)
 +        {
-+          // Extract Here (Smart): has its own flag (bit 3)
-+          CCommandMapItem cmiSmart;
-+          cmiSmart.CommandInternalID = kExtractHereSmart;
-+          cmiSmart.Verb = kMainVerb;
-+          cmiSmart.Verb += "ExtractHereSmart";
-+          cmiSmart.Folder = baseFolder;
-+          _commandMap.Add(cmiSmart);
-+          LangString(IDS_CONTEXT_EXTRACT_HERE_SMART, mainString);
-+          Set_UserString_in_LastCommand(mainString);
++          // Extract Here (Smart)
++          CCommandMapItem cmi;
++          cmi.Folder = baseFolder;
++          AddCommand(kExtractHereSmart, mainString, cmi);
 +          MyInsertMenu(popupMenu, subIndex++, currentCommandID++, mainString, bitmap);
 +        }
-       }
- 
-       if ((contextMenuFlags & NContextMenuFlags::kTest) != 0)
-@@ -1289,6 +1303,16 @@ HRESULT CZipContextMenu::InvokeCommandCommon(const CCommandMapItem &cmi)
++
+         if ((contextMenuFlags & NContextMenuFlags::kExtractTo) != 0)
+         {
+           // Extract To
+@@ -1289,6 +1299,16 @@ HRESULT CZipContextMenu::InvokeCommandCommon(const CCommandMapItem &cmi)
              );
          break;
        }
@@ -234,17 +237,17 @@ index 44d3480..7cd2f8b 100644
        {
          TestArchives(_fileNames);
 diff --git a/CPP/7zip/UI/Explorer/ContextMenu.h b/CPP/7zip/UI/Explorer/ContextMenu.h
-index 2759967..5b852bd 100644
+index 2759967..2da6c1a 100644
 --- a/CPP/7zip/UI/Explorer/ContextMenu.h
 +++ b/CPP/7zip/UI/Explorer/ContextMenu.h
-@@ -78,6 +78,7 @@ public:
+@@ -77,6 +77,7 @@ public:
+     kOpen,
      kExtract,
      kExtractHere,
-     kExtractTo,
 +    kExtractHereSmart,
+     kExtractTo,
      kTest,
      kCompress,
-     kCompressEmail,
 diff --git a/CPP/7zip/UI/Explorer/ContextMenuFlags.h b/CPP/7zip/UI/Explorer/ContextMenuFlags.h
 index 50c177e..1ba0d57 100644
 --- a/CPP/7zip/UI/Explorer/ContextMenuFlags.h
